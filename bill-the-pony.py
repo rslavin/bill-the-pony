@@ -30,8 +30,6 @@ def init_rpi_pins():
     GPIO.setup(LED_CENTER_PIN, GPIO.OUT)
 
 
-# TODO args for everything
-# TODO no-window mode
 
 def set_lights(light_states):
     """
@@ -47,6 +45,7 @@ def set_lights(light_states):
 def watch(show_video=True):
     """
     Begin video stream and find people.
+    :param show_video: Determines whether video window with boxes around detections should be shown. Defaults to True.
     :return:
     """
 
@@ -121,4 +120,6 @@ def watch(show_video=True):
 
 
 if __name__ == "__main__":
+    # TODO args for everything
+    # if any args are passed, don't show video (i.e., command line mode)
     watch(len(sys.argv) == 1)

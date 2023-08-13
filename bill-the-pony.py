@@ -30,7 +30,6 @@ def init_rpi_pins():
     GPIO.setup(LED_CENTER_PIN, GPIO.OUT)
 
 
-
 def set_lights(light_states):
     """
     Sets left, center, and right lights to on or off.

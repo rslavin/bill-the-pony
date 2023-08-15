@@ -8,18 +8,10 @@ class TrackingResponseInterface(ABC):
     """
 
     @abstractmethod
-    def found_object(self, relative_coords):
+    def found_object(self, relative_coords=None):
         """
         What to do if the object is found
-        :param relative_coords: [x, y] coords of object relative to center
-        :return:
-        """
-        pass
-
-    @abstractmethod
-    def no_object(self):
-        """
-        What to do if the object is not found
+        :param relative_coords: [x, y] coords of object relative to center. Can be None if no object detected
         :return:
         """
         pass

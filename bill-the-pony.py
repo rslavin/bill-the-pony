@@ -2,7 +2,7 @@
 import numpy as np
 import outputs.light_align as out
 import cv2
-import sys
+from argparse import ArgumentParser
 
 # width and height to resize image before sending to model
 # smaller => faster, larger => more accurate
@@ -13,13 +13,15 @@ FRAME_DISPLAY_WIDTH = 540
 FRAME_DISPLAY_HEIGHT = 300
 
 # path to cascade classifier facial layout data
-CASCADE_PATH = '/usr/share/opencv4/lbpcascades/lbpcascade_frontalface_improved.xml'
+CASCADE_PATH_DEFAULT = '/usr/share/opencv4/lbpcascades/lbpcascade_frontalface.xml'
 
 
-def watch(show_video=True):
+def watch(show_video=True, flip=False, cascade_path=CASCADE_PATH_DEFAULT):
     """
     Begin video stream and find people. Draw boxes around each person's face. The most center box is green.
     :param show_video: Determines whether video window with boxes around detections should be shown. Defaults to True.
+    :param flip: Whether to flip the video vertically
+    :param cascade_path: Path to cascade xml file. lbcascade_frontalface.xml used by default
     :return:
     """
 
@@ -27,7 +29,7 @@ def watch(show_video=True):
     output = out.LightAlign()
 
     # initialize the cascade classifierA
-    classifier = cv2.CascadeClassifier(CASCADE_PATH)
+    classifier = cv2.CascadeClassifier(cascade_path)
 
     if show_video:
         cv2.startWindowThread()
@@ -39,7 +41,8 @@ def watch(show_video=True):
     while True:
         # capture frame and convert to grayscale for improved accuracy
         frame = stream.read()[1]
-        # frame = cv2.flip(frame, -1)
+        if flip:
+            frame = cv2.flip(frame, -1)
         gray_frame = cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGRA2GRAY))
 
         # detect faces in the frame
@@ -73,12 +76,13 @@ def watch(show_video=True):
             # output
             output.found_object(sorted_boxes[0]['pos_rel_center'])
         else:  # no boxes
-            output.no_object()
+            output.found_object()
 
         # display the resulting frame
         if show_video:
             frame = cv2.resize(frame, (FRAME_DISPLAY_WIDTH, FRAME_DISPLAY_HEIGHT))
-            # frame = cv2.flip(frame, 1)
+            if flip:
+                frame = cv2.flip(frame, 1)
             cv2.imshow("Bill the Pony", frame)
 
         # TODO fix this
@@ -89,7 +93,19 @@ def watch(show_video=True):
             break
 
 
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument("-n", "--no-video", action="store_true",
+                        help="disable video playback -- for command-line invocation")
+    parser.add_argument("-f", "--flip", action="store_true",
+                        help="flip the video vertically -- use mounting camera upside down")
+    parser.add_argument("-c", "--cascade-path", action="store",
+                        help="custom location of cascade xml file for face detection")
+
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    # TODO args for everything (flip, model location, etc.)
-    # if any args are passed, don't show video (i.e., command line mode)
-    watch(len(sys.argv) == 1)
+    args = parse_args()
+    watch(show_video=not args.no_video, flip=args.flip,
+          cascade_path=args.cascade_path if args.cascade_path else CASCADE_PATH_DEFAULT)

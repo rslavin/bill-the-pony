@@ -34,13 +34,18 @@ class LightAlign(TrackingResponseInterface):
         GPIO.setup(LED_RIGHT_PIN, GPIO.OUT)
         GPIO.setup(LED_CENTER_PIN, GPIO.OUT)
 
-    def found_object(self, relative_coords):
+    def found_object(self, relative_coords=None):
         """
         Calculates what region the object is in the frame based on CENTER_SIZE_PX, which
         specifies the center region and partitions the left and right regions.
-        :param relative_coords: [x, y] coords of object relative to center
+        :param relative_coords: [x, y] coords of object relative to center. Can be None if no object detected
         :return:
         """
+        if not relative_coords:
+            set_lights([0, 0, 0])
+            print("------------------")
+            return
+
         # calculate which side of the image the center-most box is on
         if -CENTER_SIZE_PX <= relative_coords[0] <= CENTER_SIZE_PX:
             print("------CENTER------")
@@ -51,11 +56,3 @@ class LightAlign(TrackingResponseInterface):
         elif relative_coords[0] <= -CENTER_SIZE_PX:
             print("LEFT--------------")
             set_lights([1, 0, 0])
-
-    def no_object(self):
-        """
-        If no object is found, the lights are turned off.
-        :return:
-        """
-        set_lights([0, 0, 0])
-        print("------------------")

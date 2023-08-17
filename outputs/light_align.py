@@ -43,7 +43,7 @@ class LightAlign(TrackingResponseInterface):
         """
         if not relative_coords:
             set_lights([0, 0, 0])
-            print("------------------")
+            # print("------------------")
             return
 
         # calculate which side of the image the center-most box is on

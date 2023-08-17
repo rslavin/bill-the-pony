@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
-import outputs.light_align as out
+import outputs.light_align as lights_out
+import outputs.gimbal as gimbal_out
 import cv2
 from argparse import ArgumentParser
 
@@ -26,7 +27,8 @@ def watch(show_video=True, flip=False, cascade_path=CASCADE_PATH_DEFAULT):
     """
 
     # initialize output hardware
-    output = out.LightAlign()
+    output = lights_out.LightAlign()
+    output_gimbal = gimbal_out.Gimbal()
 
     # initialize the cascade classifierA
     classifier = cv2.CascadeClassifier(cascade_path)
@@ -75,8 +77,10 @@ def watch(show_video=True, flip=False, cascade_path=CASCADE_PATH_DEFAULT):
 
             # output
             output.found_object(sorted_boxes[0]['pos_rel_center'])
+            output_gimbal.found_object(sorted_boxes[0]['pos_rel_center'])
         else:  # no boxes
             output.found_object()
+            output_gimbal.found_object()
 
         # display the resulting frame
         if show_video:

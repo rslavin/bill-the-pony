@@ -1,4 +1,4 @@
-all: prerequisites update-upgrade configure-swap install-packages copy-config start-pigpiod install-opencv reset-swap
+all: prerequisites update-upgrade configure-swap install-packages bill-daemon pigpio-daemon start-pigpiod install-opencv reset-swap
 
 prerequisites:
 	@echo "Installing prerequisites..."
@@ -23,9 +23,9 @@ install-packages:
 	libatlas-base-dev gfortran || (echo "Failed to install packages!" && exit 1)
 	sudo pip3 install numpy python3-pigpio || (echo "Failed to install Python packages!" && exit 1)
 
-copy-config:
-	@echo "Copying configuration files..."
-	sudo cp ./pigpiod /etc/init.d || (echo "Failed to copy pigpiod!" && exit 1)
+pigpio-daemon:
+	@echo "Configuring pigpio daemon..."
+	sudo cp ./install_scripts/pigpiod /etc/init.d || (echo "Failed to copy pigpiod!" && exit 1)
 	sudo update-rc.d pigpiod defaults || (echo "Failed to set pigpiod defaults!" && exit 1)
 	sudo update-rc.d pigpiod enable || (echo "Failed to enable pigpiod!" && exit 1)
 
@@ -58,4 +58,4 @@ clean:
 	rm -rf opencv-4.4.0 opencv.zip opencv_contrib.zip
 	@echo "Cleanup complete."
 
-.PHONY: all prerequisites update-upgrade configure-swap install-packages copy-config start-pigpiod install-opencv reset-swap clean
+.PHONY: all prerequisites update-upgrade configure-swap install-packages bill-daemon pigpio-daemon start-pigpiod install-opencv reset-swap clean

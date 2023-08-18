@@ -6,7 +6,7 @@ LED_LEFT_PIN = 16
 LED_CENTER_PIN = 20
 LED_RIGHT_PIN = 21
 # size in pixels of center region of image
-CENTER_SIZE_PX = 15
+CENTER_SIZE_PX = 30
 
 
 def set_lights(light_states):
@@ -48,11 +48,11 @@ class LightAlign(TrackingResponseInterface):
 
         # calculate which side of the image the center-most box is on
         if -CENTER_SIZE_PX <= relative_coords[0] <= CENTER_SIZE_PX:
-            print("------CENTER------")
+            # print("------CENTER------")
             set_lights([0, 1, 0])
         elif relative_coords[0] >= CENTER_SIZE_PX:
-            print("-------------RIGHT")
+            # print("-------------RIGHT")
             set_lights([0, 0, 1])
         elif relative_coords[0] <= -CENTER_SIZE_PX:
-            print("LEFT--------------")
+            # print("LEFT--------------")
             set_lights([1, 0, 0])

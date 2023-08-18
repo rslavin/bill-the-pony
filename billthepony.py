@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 import numpy as np
+import RPi.GPIO as GPIO
 import outputs.light_align as lights_out
 import outputs.gimbal as gimbal_out
 import cv2
 from argparse import ArgumentParser
+from time import sleep
 
 # width and height to resize image before sending to model
 # smaller => faster, larger => more accurate
 FRAME_MODEL_WIDTH = 320
-FRAME_MODEL_HEIGHT = 200
+FRAME_MODEL_HEIGHT = 320
 # width and height to resize for display
 FRAME_DISPLAY_WIDTH = 540
-FRAME_DISPLAY_HEIGHT = 300
+FRAME_DISPLAY_HEIGHT = 540
+BUTTON_PIN = 22
+ON_LIGHT_PIN = 23
 
 # path to cascade classifier facial layout data
 CASCADE_PATH_DEFAULT = '/usr/share/opencv4/lbpcascades/lbpcascade_frontalface.xml'
@@ -30,6 +34,9 @@ def watch(show_video=True, flip=False, cascade_path=CASCADE_PATH_DEFAULT):
     output = lights_out.LightAlign()
     output_gimbal = gimbal_out.Gimbal()
 
+    # turn on light
+    GPIO.output(ON_LIGHT_PIN, GPIO.HIGH)
+
     # initialize the cascade classifierA
     classifier = cv2.CascadeClassifier(cascade_path)
 
@@ -40,7 +47,7 @@ def watch(show_video=True, flip=False, cascade_path=CASCADE_PATH_DEFAULT):
     stream.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_MODEL_WIDTH)
     stream.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_MODEL_HEIGHT)
 
-    while True:
+    while GPIO.input(BUTTON_PIN) == GPIO.HIGH:
         # capture frame and convert to grayscale for improved accuracy
         frame = stream.read()[1]
         if flip:
@@ -89,12 +96,8 @@ def watch(show_video=True, flip=False, cascade_path=CASCADE_PATH_DEFAULT):
                 frame = cv2.flip(frame, 1)
             cv2.imshow("Bill the Pony", frame)
 
-        # TODO fix this
-        # break if 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            stream.release()
-            cv2.destroyAllWindows()
-            break
+    stream.release()
+    cv2.destroyAllWindows()
 
 
 def parse_args():
@@ -109,7 +112,26 @@ def parse_args():
     return parser.parse_args()
 
 
+def main():
+    # setup button
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+    GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(ON_LIGHT_PIN, GPIO.OUT)
+
+    # block until button is pressed
+    while GPIO.wait_for_edge(BUTTON_PIN, GPIO.FALLING):
+        args = parse_args()
+        sleep(0.5)
+        watch(show_video=not args.no_video, flip=args.flip,
+              cascade_path=args.cascade_path if args.cascade_path else CASCADE_PATH_DEFAULT)
+        lights_out.set_lights([0, 0, 0])
+        GPIO.output(ON_LIGHT_PIN, GPIO.LOW)
+        sleep(0.5)
+
+
 if __name__ == "__main__":
-    args = parse_args()
-    watch(show_video=not args.no_video, flip=args.flip,
-          cascade_path=args.cascade_path if args.cascade_path else CASCADE_PATH_DEFAULT)
+    try:
+        main()
+    except KeyboardInterrupt:
+        GPIO.cleanup()
